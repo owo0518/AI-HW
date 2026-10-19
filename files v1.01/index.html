@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>數位邏輯電路模擬器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="bar">
+  <button data-act="sel" class="on" title="選取與移動">選取</button>
+  <button data-act="wire" title="依序點選兩個接腳連線">連線</button>
+  <button data-act="box" title="拖曳畫選取框">框選</button>
+  <button data-act="pack" title="把選取的電路封裝成元件">封裝</button>
+  <button data-act="project">專案</button>
+  <button data-act="lib">元件庫</button>
+  <button data-act="del">刪除</button>
+  <button data-act="undo">復原</button>
+  <button data-act="redo">重做</button>
+  <button data-act="zout" aria-label="縮小">−</button>
+  <button data-act="zlbl" id="zlbl" title="顯示全部">100%</button>
+  <button data-act="zin" aria-label="放大">＋</button>
+  <button data-act="step" title="所有 CLOCK 翻轉一次">單步</button>
+  <button data-act="run" id="runBtn">執行</button>
+  <button data-act="reset" title="清除所有記憶狀態">重設狀態</button>
+  <button data-act="demo">範例</button>
+  <button data-act="clear">清空</button>
+  <button data-act="status" id="stBtn">狀態</button>
+</header>
+<div id="main">
+  <aside id="pal">
+    <b>輸入／輸出</b>
+    <button data-add="INPUT">INPUT</button><button data-add="OUTPUT">OUTPUT</button><button data-add="CLOCK">CLOCK</button>
+    <b>邏輯閘</b>
+    <button data-add="AND">AND</button><button data-add="OR">OR</button><button data-add="NOT">NOT</button>
+    <button data-add="NAND">NAND</button><button data-add="NOR">NOR</button><button data-add="XOR">XOR</button><button data-add="XNOR">XNOR</button>
+    <div id="custom" hidden><b>自訂元件</b><span id="customBtns"></span></div>
+  </aside>
+  <section id="stage">
+    <div id="props" hidden></div>
+    <div id="toast" role="status"></div>
+    <svg id="cv" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern></defs><g id="world"><rect x="-6000" y="-6000" width="12000" height="12000" fill="url(#grid)"/><g id="layer"></g></g></svg>
+  </section>
+  <aside id="stat"></aside>
+</div>
+<dialog id="dlg"></dialog>
+<script src="app.js"></script>
+</body>
+</html>
