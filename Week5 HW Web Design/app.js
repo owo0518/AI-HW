@@ -432,25 +432,64 @@ async function importText(txt) {
     } else if (j.kind === 'components') {
       const r = mapDefs(j.defs || {}, S.dn); snap(); Object.assign(S.defs, r.nd); S.dn = r.dn;
     } else throw Error('未知的 kind');
-    sel.clear(); update(); fit(); toast('匯入完成');
+    sel.clear(); hideHome(); update(); fit(); toast('匯入完成');
   } catch (e) { toast('匯入失敗：' + e.message); }
 }
 /* ================= 範例與工具列 ================= */
-function demo() {
-  snap(); S = { ...fresh(), defs: S.defs, dn: S.dn };
-  const add = (type, x, y, o = {}) => { const c = { id: S.nid++, type, x, y, rot: 0, ...o }; S.comps.push(c); return c.id; };
-  const s = add('INPUT', 40, 60, { name: 'S', val: 0 }), r = add('INPUT', 40, 200, { name: 'R', val: 0 });
-  const n1 = add('NOR', 240, 40), n2 = add('NOR', 240, 180), q = add('OUTPUT', 420, 60, { name: 'Q' }), qb = add('OUTPUT', 420, 200, { name: 'QB' });
-  const w = (a, ap, b, bp) => S.wires.push({ id: S.nid++, from: { c: a, p: ap }, to: { c: b, p: bp } });
-  w(r, 0, n1, 0); w(n2, 0, n1, 1); w(s, 0, n2, 1); w(n1, 0, n2, 0); w(n1, 0, q, 0); w(n2, 0, qb, 0);
-  S.cnt = { INPUT: 2, OUTPUT: 2 }; sel.clear(); update(); fit(); toast('SR 栓鎖：先把 S 切成 1，再切回 0，Q 會保持 1');
+const EXAMPLES = [
+  { id: 'sr', name: 'SR 栓鎖', desc: '兩顆 NOR 組成的 1 位元記憶，S 設定、R 重設。', tip: '把 S 切到 1 再切回 0，Q 會保持 1；R=1 時 Q 變 0。',
+    c: [['s', 'INPUT', 40, 60, { name: 'S', val: 0 }], ['r', 'INPUT', 40, 200, { name: 'R', val: 0 }], ['n1', 'NOR', 240, 40], ['n2', 'NOR', 240, 180], ['q', 'OUTPUT', 420, 60, { name: 'Q' }], ['qb', 'OUTPUT', 420, 200, { name: 'QB' }]],
+    w: [['r', 0, 'n1', 0], ['n2', 0, 'n1', 1], ['s', 0, 'n2', 1], ['n1', 0, 'n2', 0], ['n1', 0, 'q', 0], ['n2', 0, 'qb', 0]] },
+  { id: 'half', name: '半加器', desc: 'XOR 求和、AND 求進位，把兩個 1 位元相加。', tip: '試試 A=1、B=1：SUM=0、CARRY=1。',
+    c: [['a', 'INPUT', 40, 60, { name: 'A', val: 0 }], ['b', 'INPUT', 40, 160, { name: 'B', val: 0 }], ['x', 'XOR', 220, 40], ['n', 'AND', 220, 160], ['s', 'OUTPUT', 400, 60, { name: 'SUM' }], ['c', 'OUTPUT', 400, 180, { name: 'CARRY' }]],
+    w: [['a', 0, 'x', 0], ['b', 0, 'x', 1], ['a', 0, 'n', 0], ['b', 0, 'n', 1], ['x', 0, 's', 0], ['n', 0, 'c', 0]] },
+  { id: 'full', name: '全加器', desc: '含進位輸入的 1 位元加法，由兩個半加器加 OR 組成。', tip: '試試 A=B=CIN=1：SUM=1、COUT=1。',
+    c: [['a', 'INPUT', 40, 40, { name: 'A', val: 0 }], ['b', 'INPUT', 40, 120, { name: 'B', val: 0 }], ['ci', 'INPUT', 40, 240, { name: 'CIN', val: 0 }], ['x1', 'XOR', 200, 60], ['a1', 'AND', 200, 160], ['x2', 'XOR', 360, 80], ['a2', 'AND', 360, 200], ['o', 'OR', 520, 170], ['s', 'OUTPUT', 680, 100, { name: 'SUM' }], ['co', 'OUTPUT', 680, 190, { name: 'COUT' }]],
+    w: [['a', 0, 'x1', 0], ['b', 0, 'x1', 1], ['a', 0, 'a1', 0], ['b', 0, 'a1', 1], ['x1', 0, 'x2', 0], ['ci', 0, 'x2', 1], ['x1', 0, 'a2', 0], ['ci', 0, 'a2', 1], ['a1', 0, 'o', 0], ['a2', 0, 'o', 1], ['x2', 0, 's', 0], ['o', 0, 'co', 0]] },
+  { id: 'dl', name: 'D 栓鎖（含 CLOCK）', desc: '時脈為 1 時 Q 跟隨 D，為 0 時保持。', tip: '按「執行」讓 CLK 自動翻轉，再切換 D；CLK=0 期間 Q 不會改變。',
+    c: [['d', 'INPUT', 40, 60, { name: 'D', val: 0 }], ['e', 'CLOCK', 40, 220, { name: 'CLK', val: 1, hz: 0.5 }], ['nt', 'NOT', 140, 110], ['n1', 'NAND', 260, 40], ['n2', 'NAND', 260, 200], ['nq', 'NAND', 420, 60], ['nb', 'NAND', 420, 180], ['q', 'OUTPUT', 600, 80, { name: 'Q' }], ['qb', 'OUTPUT', 600, 200, { name: 'QB' }]],
+    w: [['d', 0, 'n1', 0], ['e', 0, 'n1', 1], ['d', 0, 'nt', 0], ['nt', 0, 'n2', 0], ['e', 0, 'n2', 1], ['n1', 0, 'nq', 0], ['nb', 0, 'nq', 1], ['n2', 0, 'nb', 0], ['nq', 0, 'nb', 1], ['nq', 0, 'q', 0], ['nb', 0, 'qb', 0]] },
+];
+function loadExample(id) {
+  const ex = EXAMPLES.find(e => e.id === id); if (!ex) return;
+  snap(); S = { ...fresh(), defs: S.defs, dn: S.dn }; const ids = {};
+  for (const [k, type, x, y, o] of ex.c) { ids[k] = S.nid++; S.comps.push({ id: ids[k], type, x, y, rot: 0, ...o }); S.cnt[type] = (S.cnt[type] || 0) + 1; }
+  for (const [a, ap, b, bp] of ex.w) S.wires.push({ id: S.nid++, from: { c: ids[a], p: ap }, to: { c: ids[b], p: bp } });
+  sel.clear(); selW = null; hideHome(); update(); fit(); toast(ex.name + '：' + ex.tip);
 }
+/* ================= home：起始畫面 ================= */
+const home = $('#home');
+function showHome(view = 'main') {
+  const has = S.comps.length > 0;
+  $('#homeMain').hidden = view !== 'main'; $('#homeEx').hidden = view !== 'ex';
+  $('[data-h=resume]').hidden = !has; home.hidden = false;
+  $('#exList').innerHTML = EXAMPLES.map(e => `<button data-ex="${e.id}"><b>${esc(e.name)}</b><span>${esc(e.desc)}</span></button>`).join('');
+  (view === 'ex' ? $('[data-h=back]') : home.querySelector('.hmenu button:not([hidden])'))?.focus();
+}
+const hideHome = () => { home.hidden = true; };
+home.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.ex) return loadExample(t.dataset.ex);
+  switch (t.dataset.h) {
+    case 'new': if (S.comps.length && !confirm('目前的畫布與自訂元件將被清空（可用「復原」找回）。要新建專案嗎？')) return;
+      snap(); S = fresh(); sel.clear(); selW = null; hideHome(); update(); fit(); break;
+    case 'examples': showHome('ex'); break;
+    case 'back': showHome('main'); break;
+    case 'resume': hideHome(); break;
+    case 'import': $('#homeFile').click(); break;
+    case 'paste': projectDlg(); break;
+  }
+});
+$('#homeFile').addEventListener('change', async e => {
+  for (const f of e.target.files) { if (f.size > 5 * 1048576) { toast('檔案超過 5 MB：' + f.name); continue; } await importText(await f.text()); }
+  e.target.value = '';
+});
 const acts = {
   sel: () => setMode('sel'), wire: () => setMode('wire'), box: () => setMode('box'), pack, project: projectDlg, lib: libDlg, del: delSel, undo, redo,
   zout: () => zoomAt(innerWidth / 2, innerHeight / 2, view.k / 1.2), zin: () => zoomAt(innerWidth / 2, innerHeight / 2, view.k * 1.2), zlbl: fit, step,
   run: () => { if (!running && !S.comps.some(c => c.type === 'CLOCK')) return toast('畫布上沒有 CLOCK'); running = !running; $('#runBtn').textContent = running ? '暫停' : '執行'; },
   reset: () => { snap(); S.st = {}; update(); },
-  demo, clear: () => { if (!S.comps.length || confirm('清空整個畫布？（可復原）')) { snap(); S = { ...fresh(), defs: S.defs, dn: S.dn }; sel.clear(); update(); } },
+  home: () => showHome('main'), clear: () => { if (!S.comps.length || confirm('清空整個畫布？（可復原）')) { snap(); S = { ...fresh(), defs: S.defs, dn: S.dn }; sel.clear(); update(); } },
   status: () => $('#stat').classList.toggle('open'),
 };
 function setMode(m) { mode = m; pending = null; hot = null; ['sel', 'wire', 'box'].forEach(k => $(`[data-act=${k}]`).classList.toggle('on', k === m)); redraw(); }
@@ -472,3 +511,4 @@ document.addEventListener('keydown', e => {
 });
 addEventListener('resize', redraw);
 update();
+showHome('main');
