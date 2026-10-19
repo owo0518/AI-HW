@@ -23,7 +23,7 @@
   <button data-act="step" title="所有 CLOCK 翻轉一次">單步</button>
   <button data-act="run" id="runBtn">執行</button>
   <button data-act="reset" title="清除所有記憶狀態">重設狀態</button>
-  <button data-act="demo">範例</button>
+  <button data-act="home" title="回到起始畫面">首頁</button>
   <button data-act="clear">清空</button>
   <button data-act="status" id="stBtn">狀態</button>
 </header>
@@ -42,6 +42,26 @@
     <svg id="cv" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern></defs><g id="world"><rect x="-6000" y="-6000" width="12000" height="12000" fill="url(#grid)"/><g id="layer"></g></g></svg>
   </section>
   <aside id="stat"></aside>
+</div>
+<div id="home" role="dialog" aria-modal="true" aria-labelledby="homeTitle">
+  <div class="hbox">
+    <svg class="hlogo" viewBox="0 0 120 60" aria-hidden="true"><path d="M0 20H10M0 40H10" stroke="var(--v1)"/><path d="M10 8H50A22 22 0 0 1 50 52H10Z" stroke="var(--ink)" fill="var(--panel)"/><path d="M72 30H116" stroke="var(--v0)"/></svg>
+    <p class="eyebrow">LOGIC CIRCUIT SIMULATOR</p>
+    <h1 id="homeTitle">數位邏輯電路模擬器</h1>
+    <p class="sub">拖曳邏輯閘、連線，即時觀察 0 與 1 如何在電路中流動。</p>
+    <nav id="homeMain" class="hmenu" aria-label="主選單">
+      <button data-h="new"><b>新建專案</b><span>從空白畫布開始設計</span></button>
+      <button data-h="examples"><b>範例</b><span>栓鎖、加法器等現成電路</span></button>
+      <button data-h="import"><b>導入專案</b><span>開啟先前匯出的 .json 專案檔</span></button>
+      <button data-h="resume" hidden><b>繼續編輯</b><span>回到目前的畫布</span></button>
+    </nav>
+    <nav id="homeEx" class="hmenu" aria-label="範例清單" hidden>
+      <button data-h="back" class="back">← 返回主選單</button>
+      <div id="exList" class="hmenu"></div>
+    </nav>
+    <input id="homeFile" type="file" accept=".json,application/json" hidden>
+    <button class="link" data-h="paste">改用貼上 JSON 文字匯入</button>
+  </div>
 </div>
 <dialog id="dlg"></dialog>
 <script src="app.js"></script>
