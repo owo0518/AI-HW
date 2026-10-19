@@ -214,7 +214,7 @@ function hitPin(p, rad, want) {
 }
 function hit(p) {
   const pin = hitPin(p, (mode === 'wire' ? 18 : 10) / view.k); if (pin) return { pin };
-  for (let i = S.comps.length - 1; i >= 0; i--) { const c = S.comps[i], s = size(c); if (p.x >= c.x && p.x <= c.x + s.w && p.y >= c.y && p.y <= c.y + s.h) return { c }; }
+  for (let i = S.comps.length - 1; i >= 0; i--) { const c = S.comps[i], s = size(c); if (p.x >= c.x && p.x <= c.x + s.w && p.y >= c.y && p.y <= c.y + s.h) return { c: c.id }; }
   for (const w of S.wires) { const ps = wirePts(w); for (let i = 0; i < ps.length - 1; i++) if (dSeg(p, ps[i], ps[i + 1]) < 6 / view.k) return { w: w.id }; }
   return {};
 }
